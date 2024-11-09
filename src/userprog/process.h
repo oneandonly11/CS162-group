@@ -13,6 +13,9 @@
    the TID of the main thread of the process */
 typedef tid_t pid_t;
 
+typedef char lock_t;
+typedef char sema_t;
+
 /* Thread functions (Project 2: Multithreading) */
 typedef void (*pthread_fun)(void*);
 typedef void (*stub_fun)(pthread_fun, void*);
@@ -24,14 +27,22 @@ typedef void (*stub_fun)(pthread_fun, void*);
    of the process, which is `special`. */
 struct process {
   /* Owned by process.c. */
-  uint32_t* pagedir;               /* Page directory. */
-  char process_name[16];           /* Name of the main thread */
-  struct thread* main_thread;      /* Pointer to main thread */
+  uint32_t* pagedir;          /* Page directory. */
+  char process_name[16];      /* Name of the main thread */
+  struct thread* main_thread; /* Pointer to main thread */
+
   struct list children;            /* List of child processes */
   struct child_process* child_ptr; /* Pointer to parent's child process */
   struct file* exec_file;          /* executable file resource */
   struct list fds;                 /* file descriptors list*/
   struct lock fds_lock;            /* access fds lock */
+
+  struct list pthreads;       /* process pthreads list */
+  struct lock pthreads_lock;  /* access pthreads lock */
+  struct semaphore main_wait; /* semaphore for main thread waiting */
+
+  struct list locks; /* user locks */
+  struct list semas; /* user semas */
 };
 
 struct child_process {
@@ -42,11 +53,31 @@ struct child_process {
   struct semaphore wait_sema; /* Semaphore for waiting */
 };
 
+struct pthread {
+  struct semaphore wait_sema; /* Semaphore for waiting */
+  tid_t tid;                  /* Thread ID */
+  struct list_elem elem;      /* List element */
+  uint8_t* stack;             /* pthread stack */
+  bool wait;
+};
+
 struct file_descriptor {
   int fd;                /* File descriptor */
   struct file* file;     /* File resource */
   struct list_elem elem; /* List element */
   struct lock lock;      /* access lock */
+};
+
+struct user_lock {
+  lock_t id;             /* id */
+  struct lock lock;      /* kernel lock */
+  struct list_elem elem; /* list elem */
+};
+
+struct user_sema {
+  lock_t id;             /* id */
+  struct semaphore sema; /* kernel lock */
+  struct list_elem elem; /* list elem */
 };
 
 void userprog_init(void);
