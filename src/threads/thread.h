@@ -93,13 +93,6 @@ struct thread {
   /* Shared between thread.c and synch.c. */
   struct list_elem elem; /* List element. */
 
-  int64_t sleep_ticks;         /* Number of ticks to sleep for. */
-  struct list_elem sleep_elem; /* List element for sleeping threads list. */
-
-  struct lock* waiting_lock; /* Lock that the thread is waiting on */
-  struct list locks;         /* List of locks that the thread holds */
-  int original_priority;     /* Original priority of the thread */
-
 #ifdef USERPROG
   /* Owned by process.c. */
   struct process* pcb; /* Process control block if this thread is a userprog */
@@ -155,7 +148,5 @@ int thread_get_nice(void);
 void thread_set_nice(int);
 int thread_get_recent_cpu(void);
 int thread_get_load_avg(void);
-
-bool thread_priority_less(const struct list_elem*, const struct list_elem*, void* UNUSED);
 
 #endif /* threads/thread.h */
